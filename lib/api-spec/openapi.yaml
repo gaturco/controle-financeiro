@@ -3,20 +3,26 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Controle Financeiro - Gabriel e Fernanda
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: incomes
+    description: Entradas financeiras
+  - name: expenses
+    description: Gastos
+  - name: summary
+    description: Resumo financeiro
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +30,218 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /incomes:
+    get:
+      operationId: listIncomes
+      tags: [incomes]
+      summary: Listar entradas
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: person
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de entradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Income"
+    post:
+      operationId: createIncome
+      tags: [incomes]
+      summary: Cadastrar entrada
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncomeInput"
+      responses:
+        "201":
+          description: Entrada criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Income"
+
+  /incomes/{id}:
+    patch:
+      operationId: updateIncome
+      tags: [incomes]
+      summary: Atualizar entrada
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncomeUpdate"
+      responses:
+        "200":
+          description: Entrada atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Income"
+    delete:
+      operationId: deleteIncome
+      tags: [incomes]
+      summary: Remover entrada
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removida
+
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      summary: Listar gastos
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: person
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de gastos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Cadastrar gasto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+      responses:
+        "201":
+          description: Gasto criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+
+  /expenses/{id}:
+    patch:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Atualizar gasto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseUpdate"
+      responses:
+        "200":
+          description: Gasto atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      summary: Remover gasto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removido
+
+  /summary:
+    get:
+      operationId: getMonthlySummary
+      tags: [summary]
+      summary: Resumo financeiro mensal
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Resumo do mês
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlySummary"
+
+  /obra-summary:
+    get:
+      operationId: getObraSummary
+      tags: [summary]
+      summary: Resumo dos gastos de obra
+      responses:
+        "200":
+          description: Resumo da obra
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ObraSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +252,238 @@ components:
       required:
         - status
 
+    Income:
+      type: object
+      required: [id, person, type, description, amount, month, year, createdAt]
+      properties:
+        id:
+          type: integer
+        person:
+          type: string
+          description: "gabriel | fernanda"
+        type:
+          type: string
+          description: "salario | bonus | plr | decimo_terceiro | outro"
+        description:
+          type: string
+        amount:
+          type: number
+        month:
+          type: integer
+        year:
+          type: integer
+        createdAt:
+          type: string
+
+    IncomeInput:
+      type: object
+      required: [person, type, description, amount, month, year]
+      properties:
+        person:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        month:
+          type: integer
+        year:
+          type: integer
+
+    IncomeUpdate:
+      type: object
+      properties:
+        person:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        month:
+          type: integer
+        year:
+          type: integer
+
+    Expense:
+      type: object
+      required: [id, description, amount, category, expenseType, month, year, createdAt]
+      properties:
+        id:
+          type: integer
+        person:
+          type: ["string", "null"]
+          description: "gabriel | fernanda | ambos"
+        description:
+          type: string
+        amount:
+          type: number
+          description: Valor total do gasto
+        monthlyAmount:
+          type: number
+          description: Custo mensal (para parcelados = amount / totalInstallments)
+        category:
+          type: string
+          description: "obra | alimentacao | transporte | saude | educacao | lazer | cartao_credito | outros"
+        expenseType:
+          type: string
+          description: "fixo | variavel"
+        paymentMethod:
+          type: ["string", "null"]
+          description: "credito | debito | pix | dinheiro"
+        isInstallment:
+          type: boolean
+        totalInstallments:
+          type: ["integer", "null"]
+        currentInstallment:
+          type: ["integer", "null"]
+        startMonth:
+          type: integer
+        startYear:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+        createdAt:
+          type: string
+
+    ExpenseInput:
+      type: object
+      required: [description, amount, category, expenseType, month, year]
+      properties:
+        person:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        expenseType:
+          type: string
+        paymentMethod:
+          type: string
+        isInstallment:
+          type: boolean
+        totalInstallments:
+          type: ["integer", "null"]
+        currentInstallment:
+          type: ["integer", "null"]
+        startMonth:
+          type: integer
+        startYear:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+
+    ExpenseUpdate:
+      type: object
+      properties:
+        person:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        category:
+          type: string
+        expenseType:
+          type: string
+        paymentMethod:
+          type: string
+        isInstallment:
+          type: boolean
+        totalInstallments:
+          type: ["integer", "null"]
+        currentInstallment:
+          type: ["integer", "null"]
+        startMonth:
+          type: integer
+        startYear:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+
+    CategorySummary:
+      type: object
+      required: [category, total]
+      properties:
+        category:
+          type: string
+        total:
+          type: number
+
+    MonthlySummary:
+      type: object
+      required: [month, year, totalIncome, totalExpenses, balance, fixedTotal, variableTotal, obraTotal, expensesByCategory, incomeByPerson]
+      properties:
+        month:
+          type: integer
+        year:
+          type: integer
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        balance:
+          type: number
+        fixedTotal:
+          type: number
+        variableTotal:
+          type: number
+        obraTotal:
+          type: number
+        expensesByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySummary"
+        incomeByPerson:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategorySummary"
+
+    ObraExpenseItem:
+      type: object
+      required: [id, description, amount, monthlyAmount, isInstallment, startMonth, startYear]
+      properties:
+        id:
+          type: integer
+        description:
+          type: string
+        amount:
+          type: number
+        monthlyAmount:
+          type: number
+        isInstallment:
+          type: boolean
+        totalInstallments:
+          type: ["integer", "null"]
+        currentInstallment:
+          type: ["integer", "null"]
+        startMonth:
+          type: integer
+        startYear:
+          type: integer
+        paymentMethod:
+          type: ["string", "null"]
+
+    ObraSummary:
+      type: object
+      required: [totalInvested, monthlyCommitment, items]
+      properties:
+        totalInvested:
+          type: number
+        monthlyCommitment:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ObraExpenseItem"

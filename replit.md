@@ -1,44 +1,62 @@
-# [Project name]
+# Controle Financeiro — Gabriel e Fernanda
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Controlador financeiro pessoal para Gabriel e Fernanda, com gestão de entradas mensais, gastos fixos e variáveis, e controle detalhado dos gastos da obra.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/api-server run dev` — rodar o servidor API (porta 8080)
+- `pnpm --filter @workspace/financeiro run dev` — rodar o frontend (porta 25404)
+- `pnpm run typecheck` — typecheck completo em todos os pacotes
+- `pnpm run build` — typecheck + build de todos os pacotes
+- `pnpm --filter @workspace/api-spec run codegen` — regenerar hooks e schemas Zod a partir do spec OpenAPI
+- `pnpm --filter @workspace/db run push` — aplicar mudanças de schema no banco (dev only)
+- Required env: `DATABASE_URL` — string de conexão Postgres
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
+- Frontend: React + Vite + Tailwind CSS + shadcn/ui
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
+- Validação: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — contrato OpenAPI (source of truth)
+- `lib/db/src/schema/incomes.ts` — schema da tabela de entradas
+- `lib/db/src/schema/expenses.ts` — schema da tabela de gastos
+- `lib/api-client-react/src/generated/` — hooks React Query gerados
+- `lib/api-zod/src/generated/` — schemas Zod para validação no servidor
+- `artifacts/api-server/src/routes/` — rotas da API
+- `artifacts/financeiro/src/` — frontend React
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- OpenAPI-first: toda a API é definida em `openapi.yaml` e os hooks/schemas são gerados via Orval
+- Gastos de obra parcelados: o campo `monthlyAmount` é calculado automaticamente no backend (amount / totalInstallments)
+- O resumo mensal (`/api/summary`) agrega entradas e gastos em tempo real sem cache
+- Gastos de obra têm painel dedicado (`/obra`) com custo mensal calculado para parcelados
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Dashboard mensal com receitas, despesas, saldo, gastos por categoria e total de obra
+- Gestão de entradas (salário, bônus, PLR, 13° salário, outros) por pessoa (Gabriel/Fernanda)
+- Gestão de gastos fixos e variáveis com categorias (obra, alimentação, transporte, saúde, educação, lazer, cartão de crédito, outros)
+- Gastos de obra: diferenciação entre parcelado e à vista, com cálculo automático do custo mensal
+- Painel exclusivo da obra com total investido e compromisso mensal
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Idioma: Português (pt-BR)
+- Dois usuários principais: Gabriel e Fernanda
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Sempre rodar `pnpm --filter @workspace/api-spec run codegen` após mudar o `openapi.yaml`
+- Rodar `pnpm --filter @workspace/db run push` após mudar qualquer schema em `lib/db/src/schema/`
+- O campo `monthlyAmount` é calculado e persistido no banco — não calcular no frontend
 
 ## Pointers
 
