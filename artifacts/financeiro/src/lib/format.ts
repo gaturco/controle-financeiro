@@ -6,6 +6,5 @@ export function formatCurrency(value: number): string {
 }
 
 export function formatMonthYear(month: number, year: number): string {
-  const date = new Date(year, month - 1);
-  return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(date);
+  return `${String(month).padStart(2, '0')}/${year}`;
 }

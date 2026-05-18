@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4 pt-2">
-      <h1 className="text-xl font-bold tracking-tight capitalize">
+      <h1 className="text-xl font-bold tracking-tight">
         {formatMonthYear(month, year)}
       </h1>
 

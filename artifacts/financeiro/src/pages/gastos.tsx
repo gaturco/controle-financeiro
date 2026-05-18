@@ -239,7 +239,7 @@ export default function Gastos() {
       ) : expenses && expenses.length > 0 ? (
         <div className="space-y-2">
           {expenses.map(expense => (
-            <Card key={expense.id} className="border-border/50 hover:border-border transition-colors">
+            <Card key={expense.id} className="group border-border/50 hover:border-border hover:bg-muted/20 transition-all duration-150 cursor-default">
               <CardContent className="py-3 px-4 flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate mb-2">{expense.description}</p>
@@ -264,7 +264,7 @@ export default function Gastos() {
                       <p className="text-[10px] text-muted-foreground">/mês</p>
                     )}
                   </div>
-                  <button onClick={() => handleDelete(expense.id)} className="text-muted-foreground hover:text-destructive transition-colors p-0.5 mt-0.5">
+                  <button onClick={() => handleDelete(expense.id)} className="text-muted-foreground hover:text-destructive transition-colors p-0.5 mt-0.5 opacity-40 group-hover:opacity-100">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

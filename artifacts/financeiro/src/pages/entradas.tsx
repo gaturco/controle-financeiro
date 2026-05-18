@@ -179,7 +179,7 @@ export default function Entradas() {
       ) : incomes && incomes.length > 0 ? (
         <div className="space-y-2">
           {incomes.map(income => (
-            <Card key={income.id} className="border-border/50 hover:border-border transition-colors">
+            <Card key={income.id} className="group border-border/50 hover:border-border hover:bg-muted/20 transition-all duration-150 cursor-default">
               <CardContent className="py-3 px-4 flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate mb-1.5">{income.description}</p>
@@ -190,7 +190,7 @@ export default function Entradas() {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span className="font-bold text-primary text-sm">{formatCurrency(income.amount)}</span>
-                  <button onClick={() => handleDelete(income.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1">
+                  <button onClick={() => handleDelete(income.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1 opacity-40 group-hover:opacity-100">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
