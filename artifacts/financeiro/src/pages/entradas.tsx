@@ -8,6 +8,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { useMonth } from "@/hooks/use-month";
 import { PersonBadge, IncomeBadge } from "@/components/badges";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,6 +31,7 @@ export default function Entradas() {
   const { month, year } = useMonth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<IncomeFormData>({ person: "gabriel", type: "salario", description: "", amount: "", month, year });
 
   const params = { month, year };
@@ -56,9 +58,14 @@ export default function Entradas() {
     );
   };
 
-  const handleDelete = (id: number) => {
-    if (!confirm("Remover esta entrada?")) return;
-    deleteMutation.mutate({ id }, { onSuccess: invalidate });
+  const handleDelete = (id: number) => setDeleteId(id);
+
+  const confirmDelete = () => {
+    if (deleteId === null) return;
+    deleteMutation.mutate({ id: deleteId }, {
+      onSuccess: () => { invalidate(); setDeleteId(null); },
+      onError: () => setDeleteId(null),
+    });
   };
 
   const total = incomes?.reduce((s, i) => s + i.amount, 0) ?? 0;
@@ -194,6 +201,15 @@ export default function Entradas() {
       ) : (
         <div className="text-center py-16 text-muted-foreground text-sm">Nenhuma entrada registrada neste mês.</div>
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        title="Remover entrada"
+        description="Essa ação não pode ser desfeita. Deseja remover esta entrada?"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteId(null)}
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

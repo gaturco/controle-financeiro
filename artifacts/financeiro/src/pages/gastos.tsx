@@ -8,6 +8,7 @@ import {
 import { formatCurrency } from "@/lib/format";
 import { useMonth } from "@/hooks/use-month";
 import { CategoryBadge, TypeBadge, PaymentBadge, InstallmentBadge } from "@/components/badges";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,6 +38,7 @@ export default function Gastos() {
   const { month, year } = useMonth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<ExpenseFormData>({
     description: "", amount: "", category: "alimentacao", expenseType: "variavel",
     paymentMethod: "credito", isInstallment: false, totalInstallments: "",
@@ -89,9 +91,14 @@ export default function Gastos() {
     );
   };
 
-  const handleDelete = (id: number) => {
-    if (!confirm("Remover este gasto?")) return;
-    deleteMutation.mutate({ id }, { onSuccess: invalidate });
+  const handleDelete = (id: number) => setDeleteId(id);
+
+  const confirmDelete = () => {
+    if (deleteId === null) return;
+    deleteMutation.mutate({ id: deleteId }, {
+      onSuccess: () => { invalidate(); setDeleteId(null); },
+      onError: () => setDeleteId(null),
+    });
   };
 
   const total = expenses?.reduce((s, e) => s + (e.monthlyAmount ?? e.amount), 0) ?? 0;
@@ -268,6 +275,15 @@ export default function Gastos() {
       ) : (
         <div className="text-center py-16 text-muted-foreground text-sm">Nenhum gasto registrado neste mês.</div>
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        title="Remover gasto"
+        description="Essa ação não pode ser desfeita. Deseja remover este gasto?"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteId(null)}
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }
