@@ -92,7 +92,7 @@ export default function Entradas() {
                 <div className="grid grid-cols-2 gap-2">
                   {["gabriel", "fernanda"].map((p) => (
                     <button key={p} type="button" onClick={() => setForm(f => ({ ...f, person: p }))}
-                      className={`py-2.5 rounded-xl border text-sm font-medium transition-all ${form.person === p ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"}`}>
+                      className={`py-2.5 rounded-xl border text-sm font-medium transition-all ${form.person === p ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:bg-muted/40 hover:text-foreground"}`}>
                       {p === "gabriel" ? "Gabriel" : "Fernanda"}
                     </button>
                   ))}
@@ -147,14 +147,14 @@ export default function Entradas() {
 
       {total > 0 && (
         <>
-          <Card className="border-primary/30 bg-primary/10">
+          <Card className="border-primary/30 bg-primary/10 hover:bg-primary/15 transition-all duration-150">
             <CardContent className="py-4 px-4">
               <p className="text-xs text-muted-foreground mb-1">Total do mês</p>
               <p className="text-3xl font-bold text-primary">{formatCurrency(total)}</p>
             </CardContent>
           </Card>
           <div className="grid grid-cols-2 gap-2">
-            <Card className="border-blue-500/20 bg-blue-500/5">
+            <Card className="border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 transition-all duration-150">
               <CardContent className="py-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
                   <PersonBadge person="gabriel" />
@@ -162,7 +162,7 @@ export default function Entradas() {
                 <p className="text-lg font-bold text-blue-300">{formatCurrency(gabrielTotal)}</p>
               </CardContent>
             </Card>
-            <Card className="border-purple-500/20 bg-purple-500/5">
+            <Card className="border-purple-500/20 bg-purple-500/5 hover:bg-purple-500/10 transition-all duration-150">
               <CardContent className="py-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
                   <PersonBadge person="fernanda" />

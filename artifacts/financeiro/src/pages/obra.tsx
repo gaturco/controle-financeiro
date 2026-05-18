@@ -24,13 +24,13 @@ export default function Obra() {
       ) : summary ? (
         <>
           <div className="grid grid-cols-2 gap-3">
-            <Card className="border-primary/30 bg-primary/10">
+            <Card className="border-primary/30 bg-primary/10 hover:bg-primary/15 transition-all duration-150">
               <CardContent className="pt-4 pb-4">
                 <p className="text-xs text-muted-foreground mb-1">Total investido</p>
                 <p className="text-2xl font-bold text-primary">{formatCurrency(summary.totalInvested)}</p>
               </CardContent>
             </Card>
-            <Card className="border-amber-500/30 bg-amber-500/10">
+            <Card className="border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 transition-all duration-150">
               <CardContent className="pt-4 pb-4">
                 <p className="text-xs text-amber-400/80 mb-1">Parcelas / mês</p>
                 <p className="text-2xl font-bold text-amber-400">{formatCurrency(summary.monthlyCommitment)}</p>
@@ -42,7 +42,7 @@ export default function Obra() {
             <div className="space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">Todos os itens</p>
               {summary.items.map(item => (
-                <Card key={item.id} className="border-border/50">
+                <Card key={item.id} className="border-border/50 hover:border-border hover:bg-muted/20 transition-all duration-150 cursor-default">
                   <CardContent className="py-3 px-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">

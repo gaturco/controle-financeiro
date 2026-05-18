@@ -142,7 +142,7 @@ export default function Gastos() {
                 <div className="grid grid-cols-2 gap-2">
                   {[["fixo", "Fixo"], ["variavel", "Variável"]].map(([v, label]) => (
                     <button key={v} type="button" onClick={() => setForm(f => ({ ...f, expenseType: v }))}
-                      className={`py-2.5 rounded-xl border text-sm font-medium transition-all ${form.expenseType === v ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"}`}>
+                      className={`py-2.5 rounded-xl border text-sm font-medium transition-all ${form.expenseType === v ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50 hover:bg-muted/40 hover:text-foreground"}`}>
                       {label}
                     </button>
                   ))}
@@ -167,7 +167,7 @@ export default function Gastos() {
                     <div className="grid grid-cols-2 gap-2">
                       {([[true, "Sim, parcelado"], [false, "À vista"]] as [boolean, string][]).map(([v, label]) => (
                         <button key={String(v)} type="button" onClick={() => setForm(f => ({ ...f, isInstallment: v, totalInstallments: "" }))}
-                          className={`py-2 rounded-xl border text-sm font-medium transition-all ${form.isInstallment === v ? "bg-amber-600 text-white border-amber-600" : "border-border text-muted-foreground hover:border-amber-500/50"}`}>
+                          className={`py-2 rounded-xl border text-sm font-medium transition-all ${form.isInstallment === v ? "bg-amber-600 text-white border-amber-600" : "border-border text-muted-foreground hover:border-amber-500/50 hover:bg-amber-500/10 hover:text-foreground"}`}>
                           {label}
                         </button>
                       ))}
@@ -213,19 +213,19 @@ export default function Gastos() {
 
       {total > 0 && (
         <div className="grid grid-cols-3 gap-2">
-          <Card className="border-destructive/30 bg-destructive/10">
+          <Card className="border-destructive/30 bg-destructive/10 hover:bg-destructive/15 transition-all duration-150">
             <CardContent className="py-3 px-3">
               <p className="text-[10px] text-muted-foreground mb-0.5">Total</p>
               <p className="text-base font-bold text-destructive">{formatCurrency(total)}</p>
             </CardContent>
           </Card>
-          <Card className="border-primary/20 bg-primary/5">
+          <Card className="border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all duration-150">
             <CardContent className="py-3 px-3">
               <p className="text-[10px] text-muted-foreground mb-0.5">Fixos</p>
               <p className="text-base font-bold text-primary">{formatCurrency(fixedTotal)}</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="hover:bg-muted/20 transition-all duration-150">
             <CardContent className="py-3 px-3">
               <p className="text-[10px] text-muted-foreground mb-0.5">Variáveis</p>
               <p className="text-base font-bold">{formatCurrency(varTotal)}</p>

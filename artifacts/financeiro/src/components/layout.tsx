@@ -87,7 +87,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               key={item.href}
               href={item.href}
               className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-xs transition-colors ${
-                isActive ? "text-primary" : "text-muted-foreground"
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               }`}
             >
               <item.icon className={`h-5 w-5 ${isActive ? "stroke-[2.5px]" : ""}`} />
