@@ -7,7 +7,7 @@ import {
 } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/format";
 import { useMonth } from "@/hooks/use-month";
-import { CategoryBadge, TypeBadge, PaymentBadge, PersonBadge, InstallmentBadge } from "@/components/badges";
+import { CategoryBadge, TypeBadge, PaymentBadge, InstallmentBadge } from "@/components/badges";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,7 +29,7 @@ const PAYMENT_METHODS = [
 
 interface ExpenseFormData {
   description: string; amount: string; category: string; expenseType: string;
-  paymentMethod: string; person: string; isInstallment: boolean;
+  paymentMethod: string; isInstallment: boolean;
   totalInstallments: string; month: number; year: number; startMonth: number; startYear: number;
 }
 
@@ -39,7 +39,7 @@ export default function Gastos() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<ExpenseFormData>({
     description: "", amount: "", category: "alimentacao", expenseType: "variavel",
-    paymentMethod: "credito", person: "", isInstallment: false, totalInstallments: "",
+    paymentMethod: "credito", isInstallment: false, totalInstallments: "",
     month, year, startMonth: month, startYear: year,
   });
 
@@ -54,7 +54,11 @@ export default function Gastos() {
   };
 
   const openSheet = () => {
-    setForm({ description: "", amount: "", category: "alimentacao", expenseType: "variavel", paymentMethod: "credito", person: "", isInstallment: false, totalInstallments: "", month, year, startMonth: month, startYear: year });
+    setForm({
+      description: "", amount: "", category: "alimentacao", expenseType: "variavel",
+      paymentMethod: "credito", isInstallment: false, totalInstallments: "",
+      month, year, startMonth: month, startYear: year,
+    });
     setOpen(true);
   };
 
@@ -66,7 +70,21 @@ export default function Gastos() {
     if (!form.amount || !form.description) return;
     const isObra = form.category === "obra";
     createMutation.mutate(
-      { data: { description: form.description, amount: Number(form.amount), category: form.category, expenseType: form.expenseType, paymentMethod: form.paymentMethod || undefined, person: form.person || undefined, isInstallment: isObra ? form.isInstallment : false, totalInstallments: isObra && form.isInstallment ? Number(form.totalInstallments) : undefined, month: form.month, year: form.year, startMonth: form.startMonth, startYear: form.startYear } },
+      {
+        data: {
+          description: form.description,
+          amount: Number(form.amount),
+          category: form.category,
+          expenseType: form.expenseType,
+          paymentMethod: form.paymentMethod || undefined,
+          isInstallment: isObra ? form.isInstallment : false,
+          totalInstallments: isObra && form.isInstallment ? Number(form.totalInstallments) : undefined,
+          month: form.month,
+          year: form.year,
+          startMonth: form.startMonth,
+          startYear: form.startYear,
+        },
+      },
       { onSuccess: () => { invalidate(); setOpen(false); } }
     );
   };
@@ -134,18 +152,6 @@ export default function Gastos() {
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <Label>Pessoa (opcional)</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[["", "Ambos"], ["gabriel", "Gabriel"], ["fernanda", "Fernanda"]].map(([v, label]) => (
-                    <button key={v} type="button" onClick={() => setForm(f => ({ ...f, person: v }))}
-                      className={`py-2 rounded-xl border text-sm font-medium transition-all ${form.person === v ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"}`}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {isObra && (
                 <div className="space-y-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
                   <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide">Gasto de Obra</p>
@@ -200,7 +206,7 @@ export default function Gastos() {
 
       {total > 0 && (
         <div className="grid grid-cols-3 gap-2">
-          <Card className="border-destructive/30 bg-destructive/10 col-span-1">
+          <Card className="border-destructive/30 bg-destructive/10">
             <CardContent className="py-3 px-3">
               <p className="text-[10px] text-muted-foreground mb-0.5">Total</p>
               <p className="text-base font-bold text-destructive">{formatCurrency(total)}</p>
@@ -234,14 +240,20 @@ export default function Gastos() {
                     <CategoryBadge category={expense.category} />
                     <TypeBadge type={expense.expenseType} />
                     {expense.paymentMethod && <PaymentBadge method={expense.paymentMethod} />}
-                    {expense.person && <PersonBadge person={expense.person} />}
-                    {expense.isInstallment && <InstallmentBadge current={expense.currentInstallment} total={expense.totalInstallments} />}
+                    {expense.isInstallment
+                      ? <InstallmentBadge current={expense.currentInstallment} total={expense.totalInstallments} />
+                      : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-zinc-500/20 text-zinc-300 border-zinc-500/30">
+                          À vista
+                        </span>
+                      )
+                    }
                   </div>
                 </div>
                 <div className="flex items-start gap-3 shrink-0 pt-0.5">
                   <div className="text-right">
                     <p className="font-bold text-sm text-destructive">{formatCurrency(expense.monthlyAmount ?? expense.amount)}</p>
-                    {expense.isInstallment && expense.monthlyAmount !== expense.amount && (
+                    {expense.isInstallment && (
                       <p className="text-[10px] text-muted-foreground">/mês</p>
                     )}
                   </div>
