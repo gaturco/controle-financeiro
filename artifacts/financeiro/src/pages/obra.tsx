@@ -1,93 +1,100 @@
 import { useGetObraSummary, getGetObraSummaryQueryKey } from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const PAYMENT_LABELS: Record<string, string> = {
+  credito: "Crédito",
+  debito: "Débito",
+  pix: "Pix",
+  dinheiro: "Dinheiro",
+};
+
+function monthName(m: number, y: number) {
+  return new Date(y, m - 1).toLocaleString("pt-BR", { month: "short", year: "2-digit" });
+}
+
 export default function Obra() {
-  const { data: summary, isLoading } = useGetObraSummary({ query: { queryKey: getGetObraSummaryQueryKey() } });
+  const { data: summary, isLoading } = useGetObraSummary({
+    query: { queryKey: getGetObraSummaryQueryKey() },
+  });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Gestão da Obra</h1>
-      </div>
+    <div className="space-y-4 pt-2">
+      <h1 className="text-xl font-bold tracking-tight">Gestão da Obra</h1>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-32 rounded-xl" />
-          <Skeleton className="h-32 rounded-xl" />
-        </div>
+        <>
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-48 w-full rounded-2xl" />
+        </>
       ) : summary ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Investido</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-primary">{formatCurrency(summary.totalInvested)}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Comprometimento Mensal (Parcelas)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-destructive">{formatCurrency(summary.monthlyCommitment)}</div>
-            </CardContent>
-          </Card>
-        </div>
-      ) : null}
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="pt-4 pb-4">
+                <p className="text-xs text-muted-foreground mb-1">Total investido</p>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(summary.totalInvested)}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="pt-4 pb-4">
+                <p className="text-xs text-amber-700 mb-1">Parcelas / mês</p>
+                <p className="text-2xl font-bold text-amber-800">{formatCurrency(summary.monthlyCommitment)}</p>
+              </CardContent>
+            </Card>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Gastos da Obra</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
+          {summary.items.length > 0 ? (
             <div className="space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Todos os itens</p>
+              {summary.items.map((item) => (
+                <Card key={item.id}>
+                  <CardContent className="py-3 px-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{item.description}</p>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                            item.isInstallment
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-muted text-muted-foreground"
+                          }`}>
+                            {item.isInstallment
+                              ? `Parcelado ${item.totalInstallments}x`
+                              : "À vista"}
+                          </span>
+                          {item.paymentMethod && (
+                            <span className="text-[10px] text-muted-foreground">
+                              {PAYMENT_LABELS[item.paymentMethod] ?? item.paymentMethod}
+                            </span>
+                          )}
+                          <span className="text-[10px] text-muted-foreground">
+                            desde {monthName(item.startMonth, item.startYear)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-bold text-sm">{formatCurrency(item.amount)}</p>
+                        {item.isInstallment && (
+                          <p className="text-[10px] text-amber-700 font-medium">
+                            {formatCurrency(item.monthlyAmount)}/mês
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Pagamento</TableHead>
-                  <TableHead>Parcela</TableHead>
-                  <TableHead className="text-right">Custo Mensal</TableHead>
-                  <TableHead className="text-right">Valor Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {summary?.items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.description}</TableCell>
-                    <TableCell className="capitalize">{item.paymentMethod || '-'}</TableCell>
-                    <TableCell>
-                      {item.isInstallment ? `${item.currentInstallment}/${item.totalInstallments}` : 'À vista'}
-                    </TableCell>
-                    <TableCell className="text-right text-destructive font-medium">
-                      {item.isInstallment ? formatCurrency(item.monthlyAmount) : '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(item.amount)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {summary?.items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      Nenhum gasto de obra registrado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <div className="text-center py-16 text-muted-foreground text-sm">
+              Nenhum gasto de obra registrado ainda.
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </>
+      ) : null}
     </div>
   );
 }

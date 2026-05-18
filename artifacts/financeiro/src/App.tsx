@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
+import { MonthProvider } from "@/hooks/use-month";
 import Dashboard from "@/pages/dashboard";
 import Entradas from "@/pages/entradas";
 import Gastos from "@/pages/gastos";
@@ -30,7 +31,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <MonthProvider>
+            <Router />
+          </MonthProvider>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

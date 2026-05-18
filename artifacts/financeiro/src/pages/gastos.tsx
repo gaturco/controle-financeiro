@@ -1,95 +1,415 @@
-import { useListExpenses, getListExpensesQueryKey, useDeleteExpense } from "@workspace/api-client-react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useListExpenses, getListExpensesQueryKey,
+  useCreateExpense, useDeleteExpense,
+  getGetMonthlySummaryQueryKey,
+} from "@workspace/api-client-react";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useMonth } from "@/hooks/use-month";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQueryClient } from "@tanstack/react-query";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2 } from "lucide-react";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  obra: "Obra",
+  alimentacao: "Alimentação",
+  transporte: "Transporte",
+  saude: "Saúde",
+  educacao: "Educação",
+  lazer: "Lazer",
+  cartao_credito: "Cartão de Crédito",
+  outros: "Outros",
+};
+
+const CATEGORIES = ["obra", "alimentacao", "transporte", "saude", "educacao", "lazer", "cartao_credito", "outros"];
+const PAYMENT_METHODS = [
+  { value: "credito", label: "Crédito" },
+  { value: "debito", label: "Débito" },
+  { value: "pix", label: "Pix" },
+  { value: "dinheiro", label: "Dinheiro" },
+];
+
+interface ExpenseFormData {
+  description: string;
+  amount: string;
+  category: string;
+  expenseType: string;
+  paymentMethod: string;
+  person: string;
+  isInstallment: boolean;
+  totalInstallments: string;
+  month: number;
+  year: number;
+  startMonth: number;
+  startYear: number;
+}
 
 export default function Gastos() {
+  const { month, year } = useMonth();
   const queryClient = useQueryClient();
-  const { data: expenses, isLoading } = useListExpenses({}, { query: { queryKey: getListExpensesQueryKey({}) } });
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState<ExpenseFormData>({
+    description: "",
+    amount: "",
+    category: "alimentacao",
+    expenseType: "variavel",
+    paymentMethod: "credito",
+    person: "",
+    isInstallment: false,
+    totalInstallments: "",
+    month,
+    year,
+    startMonth: month,
+    startYear: year,
+  });
+
+  const params = { month, year };
+  const { data: expenses, isLoading } = useListExpenses(params, {
+    query: { queryKey: getListExpensesQueryKey(params) },
+  });
+
+  const createMutation = useCreateExpense();
   const deleteMutation = useDeleteExpense();
 
-  const handleDelete = (id: number) => {
-    if (confirm("Tem certeza?")) {
-      deleteMutation.mutate({ id }, {
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: getListExpensesQueryKey() })
-      });
-    }
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: getListExpensesQueryKey(params) });
+    queryClient.invalidateQueries({ queryKey: getGetMonthlySummaryQueryKey(params) });
   };
 
+  const openSheet = () => {
+    setForm({
+      description: "",
+      amount: "",
+      category: "alimentacao",
+      expenseType: "variavel",
+      paymentMethod: "credito",
+      person: "",
+      isInstallment: false,
+      totalInstallments: "",
+      month,
+      year,
+      startMonth: month,
+      startYear: year,
+    });
+    setOpen(true);
+  };
+
+  const monthlyPreview =
+    form.isInstallment && form.totalInstallments && Number(form.amount) > 0
+      ? Number(form.amount) / Number(form.totalInstallments)
+      : null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.amount || !form.description) return;
+    const isObra = form.category === "obra";
+    createMutation.mutate(
+      {
+        data: {
+          description: form.description,
+          amount: Number(form.amount),
+          category: form.category,
+          expenseType: form.expenseType,
+          paymentMethod: form.paymentMethod || undefined,
+          person: form.person || undefined,
+          isInstallment: isObra ? form.isInstallment : false,
+          totalInstallments: isObra && form.isInstallment ? Number(form.totalInstallments) : undefined,
+          month: form.month,
+          year: form.year,
+          startMonth: form.startMonth,
+          startYear: form.startYear,
+        },
+      },
+      {
+        onSuccess: () => {
+          invalidate();
+          setOpen(false);
+        },
+      }
+    );
+  };
+
+  const handleDelete = (id: number) => {
+    if (!confirm("Remover este gasto?")) return;
+    deleteMutation.mutate({ id }, { onSuccess: invalidate });
+  };
+
+  const total = expenses?.reduce((s, e) => s + (e.monthlyAmount ?? e.amount), 0) ?? 0;
+  const fixedTotal = expenses?.filter(e => e.expenseType === "fixo").reduce((s, e) => s + (e.monthlyAmount ?? e.amount), 0) ?? 0;
+  const varTotal = expenses?.filter(e => e.expenseType === "variavel").reduce((s, e) => s + (e.monthlyAmount ?? e.amount), 0) ?? 0;
+
+  const isObra = form.category === "obra";
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 pt-2">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Gastos</h1>
-        <Button>Adicionar Gasto</Button>
+        <h1 className="text-xl font-bold tracking-tight">Gastos</h1>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button size="sm" onClick={openSheet}>
+              <Plus className="h-4 w-4 mr-1" />
+              Adicionar
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto">
+            <SheetHeader className="mb-4">
+              <SheetTitle>Novo Gasto</SheetTitle>
+            </SheetHeader>
+            <form onSubmit={handleSubmit} className="space-y-4 pb-4">
+              <div className="space-y-1.5">
+                <Label>Descrição</Label>
+                <Input
+                  placeholder="Ex: Supermercado"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Valor total (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0,00"
+                  value={form.amount}
+                  onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Categoria</Label>
+                <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v, isInstallment: false }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Tipo</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[["fixo", "Fixo"], ["variavel", "Variável"]].map(([v, label]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, expenseType: v }))}
+                      className={`py-2 rounded-lg border text-sm font-medium transition-colors ${
+                        form.expenseType === v
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Forma de pagamento</Label>
+                <Select value={form.paymentMethod} onValueChange={(v) => setForm((f) => ({ ...f, paymentMethod: v }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHODS.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Pessoa (opcional)</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[["", "Ambos"], ["gabriel", "Gabriel"], ["fernanda", "Fernanda"]].map(([v, label]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, person: v }))}
+                      className={`py-2 rounded-lg border text-sm font-medium transition-colors ${
+                        form.person === v
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {isObra && (
+                <div className="space-y-3 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">Gasto de Obra</p>
+                  <div className="space-y-1.5">
+                    <Label>Parcelado?</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[[true, "Sim, parcelado"], [false, "À vista"]].map(([v, label]) => (
+                        <button
+                          key={String(v)}
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, isInstallment: v as boolean, totalInstallments: "" }))}
+                          className={`py-2 rounded-lg border text-sm font-medium transition-colors ${
+                            form.isInstallment === v
+                              ? "bg-amber-600 text-white border-amber-600"
+                              : "border-border text-muted-foreground"
+                          }`}
+                        >
+                          {label as string}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {form.isInstallment && (
+                    <div className="space-y-1.5">
+                      <Label>Em quantas vezes?</Label>
+                      <Input
+                        type="number"
+                        min="2"
+                        placeholder="Ex: 12"
+                        value={form.totalInstallments}
+                        onChange={(e) => setForm((f) => ({ ...f, totalInstallments: e.target.value }))}
+                      />
+                      {monthlyPreview !== null && (
+                        <p className="text-sm text-amber-700 font-semibold">
+                          = {formatCurrency(monthlyPreview)} / mês
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Mês de referência</Label>
+                  <Select
+                    value={String(form.month)}
+                    onValueChange={(v) => setForm((f) => ({ ...f, month: Number(v), startMonth: Number(v) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                        <SelectItem key={m} value={String(m)}>
+                          {new Date(2000, m - 1).toLocaleString("pt-BR", { month: "long" })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Ano</Label>
+                  <Input
+                    type="number"
+                    value={form.year}
+                    onChange={(e) => setForm((f) => ({ ...f, year: Number(e.target.value), startYear: Number(e.target.value) }))}
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={createMutation.isPending}>
+                {createMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </form>
+          </SheetContent>
+        </Sheet>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Gastos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Pessoa</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expenses?.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell className="font-medium">
-                      {expense.description}
-                      {expense.isInstallment && (
-                         <span className="block text-xs text-muted-foreground">
-                           {expense.currentInstallment}/{expense.totalInstallments}
-                         </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="capitalize">{expense.category.replace('_', ' ')}</TableCell>
-                    <TableCell className="capitalize">{expense.expenseType}</TableCell>
-                    <TableCell className="capitalize">{expense.person || '-'}</TableCell>
-                    <TableCell className="text-right text-destructive font-medium">
-                      {formatCurrency(expense.amount)}
-                      {expense.isInstallment && expense.monthlyAmount && (
-                         <span className="block text-xs text-muted-foreground font-normal">
-                           {formatCurrency(expense.monthlyAmount)} / mês
-                         </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(expense.id)}>
-                        Excluir
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {expenses?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Nenhum gasto cadastrado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {total > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          <Card className="bg-destructive/5 border-destructive/20">
+            <CardContent className="py-3 px-3">
+              <p className="text-[10px] text-muted-foreground mb-0.5">Total</p>
+              <p className="text-base font-bold text-destructive">{formatCurrency(total)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-3 px-3">
+              <p className="text-[10px] text-muted-foreground mb-0.5">Fixos</p>
+              <p className="text-base font-bold">{formatCurrency(fixedTotal)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="py-3 px-3">
+              <p className="text-[10px] text-muted-foreground mb-0.5">Variáveis</p>
+              <p className="text-base font-bold">{formatCurrency(varTotal)}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
+        </div>
+      ) : expenses && expenses.length > 0 ? (
+        <div className="space-y-2">
+          {expenses.map((expense) => (
+            <Card key={expense.id}>
+              <CardContent className="py-3 px-4 flex items-center justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{expense.description}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                      expense.category === "obra" ? "bg-amber-100 text-amber-700" : "bg-muted text-muted-foreground"
+                    }`}>
+                      {CATEGORY_LABELS[expense.category] ?? expense.category}
+                    </span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                      expense.expenseType === "fixo" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
+                    }`}>
+                      {expense.expenseType === "fixo" ? "Fixo" : "Variável"}
+                    </span>
+                    {expense.isInstallment && (
+                      <span className="text-[10px] text-muted-foreground">
+                        {expense.currentInstallment}/{expense.totalInstallments}x
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 ml-1 shrink-0">
+                  <div className="text-right">
+                    <p className="font-bold text-sm text-destructive">
+                      {formatCurrency(expense.monthlyAmount ?? expense.amount)}
+                    </p>
+                    {expense.isInstallment && expense.monthlyAmount !== expense.amount && (
+                      <p className="text-[10px] text-muted-foreground">/mês</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(expense.id)}
+                    className="text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 text-muted-foreground text-sm">
+          Nenhum gasto registrado neste mês.
+        </div>
+      )}
     </div>
   );
 }
