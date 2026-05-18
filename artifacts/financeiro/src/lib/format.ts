@@ -6,5 +6,8 @@ export function formatCurrency(value: number): string {
 }
 
 export function formatMonthYear(month: number, year: number): string {
-  return `${String(month).padStart(2, '0')}/${year}`;
+  const date = new Date(year, month - 1);
+  const monthName = new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(date);
+  const capitalized = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+  return `${capitalized}/${year}`;
 }
