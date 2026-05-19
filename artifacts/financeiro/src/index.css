@@ -194,3 +194,16 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7) brightness(1.5);
+  cursor: pointer;
+  opacity: 0.7;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  filter: invert(0.9) brightness(2);
+}
