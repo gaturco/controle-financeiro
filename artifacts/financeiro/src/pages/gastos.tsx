@@ -32,7 +32,7 @@ const PAYMENT_METHODS = [
 interface ExpenseFormData {
   description: string; amount: string; category: string; expenseType: string;
   paymentMethod: string; isInstallment: boolean;
-  totalInstallments: string; date: string;
+  totalInstallments: string; currentInstallment: string; date: string;
 }
 
 export default function Gastos() {
@@ -43,7 +43,7 @@ export default function Gastos() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<ExpenseFormData>({
     description: "", amount: "", category: "alimentacao", expenseType: "variavel",
-    paymentMethod: "credito", isInstallment: false, totalInstallments: "", date: todayAsIso(),
+    paymentMethod: "credito", isInstallment: false, totalInstallments: "", currentInstallment: "", date: todayAsIso(),
   });
 
   const params = { month, year };
@@ -61,7 +61,7 @@ export default function Gastos() {
     setEditingId(null);
     setForm({
       description: "", amount: "", category: "alimentacao", expenseType: "variavel",
-      paymentMethod: "credito", isInstallment: false, totalInstallments: "", date: todayAsIso(),
+      paymentMethod: "credito", isInstallment: false, totalInstallments: "", currentInstallment: "", date: todayAsIso(),
     });
     setOpen(true);
   };
@@ -76,6 +76,7 @@ export default function Gastos() {
       paymentMethod: expense.paymentMethod ?? "credito",
       isInstallment: expense.isInstallment ?? false,
       totalInstallments: expense.totalInstallments ? String(expense.totalInstallments) : "",
+      currentInstallment: expense.currentInstallment ? String(expense.currentInstallment) : "",
       date: expense.date,
     });
     setOpen(true);
@@ -98,6 +99,7 @@ export default function Gastos() {
       paymentMethod: form.paymentMethod || undefined,
       isInstallment: isObra ? form.isInstallment : false,
       totalInstallments: isObra && form.isInstallment ? Number(form.totalInstallments) : undefined,
+      currentInstallment: isObra && form.isInstallment && form.currentInstallment ? Number(form.currentInstallment) : undefined,
       month: m,
       year: y,
       startMonth: m,
@@ -207,12 +209,23 @@ export default function Gastos() {
                     </div>
                   </div>
                   {form.isInstallment && (
-                    <div className="space-y-1.5">
-                      <Label>Em quantas vezes?</Label>
-                      <Input type="number" min="2" placeholder="Ex: 12" value={form.totalInstallments} onChange={e => setForm(f => ({ ...f, totalInstallments: e.target.value }))} />
-                      {monthlyPreview !== null && (
-                        <p className="text-sm text-amber-400 font-semibold">= {formatCurrency(monthlyPreview)} / mês</p>
-                      )}
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <Label>Em quantas vezes?</Label>
+                        <Input type="number" min="2" placeholder="Ex: 12" value={form.totalInstallments} onChange={e => setForm(f => ({ ...f, totalInstallments: e.target.value }))} />
+                        {monthlyPreview !== null && (
+                          <p className="text-sm text-amber-400 font-semibold">= {formatCurrency(monthlyPreview)} / mês</p>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Qual é a parcela deste mês? <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                        <Input
+                          type="number" min="1"
+                          placeholder={form.totalInstallments ? `1 a ${form.totalInstallments}` : "Ex: 3"}
+                          value={form.currentInstallment}
+                          onChange={e => setForm(f => ({ ...f, currentInstallment: e.target.value }))}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
