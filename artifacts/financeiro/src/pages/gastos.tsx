@@ -257,10 +257,7 @@ export default function Gastos() {
             <Card key={expense.id} className="group border-border/50 hover:border-border hover:bg-muted/20 transition-all duration-150 cursor-default">
               <CardContent className="py-3 px-4 flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium text-sm truncate">{expense.description}</p>
-                    <span className="text-[11px] text-muted-foreground shrink-0 ml-2">{formatDate(expense.date)}</span>
-                  </div>
+                  <p className="font-medium text-sm truncate mb-2">{expense.description}</p>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <CategoryBadge category={expense.category} />
                     <TypeBadge type={expense.expenseType} />
@@ -273,6 +270,7 @@ export default function Gastos() {
                         </span>
                       )
                     }
+                    <span className="text-[11px] text-muted-foreground">{formatDate(expense.date)}</span>
                   </div>
                 </div>
                 <div className="flex items-start gap-1.5 shrink-0 pt-0.5">
