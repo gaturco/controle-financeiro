@@ -280,7 +280,7 @@ export default function Gastos() {
                       <p className="text-[10px] text-muted-foreground">/mês</p>
                     )}
                   </div>
-                  <button onClick={() => openEdit(expense)} className="text-muted-foreground hover:text-primary transition-colors p-0.5 mt-0.5 opacity-0 group-hover:opacity-100">
+                  <button onClick={() => openEdit(expense)} className="text-muted-foreground hover:text-primary transition-colors p-0.5 mt-0.5">
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button onClick={() => handleDelete(expense.id)} className="text-muted-foreground hover:text-destructive transition-colors p-0.5 mt-0.5 opacity-40 group-hover:opacity-100">

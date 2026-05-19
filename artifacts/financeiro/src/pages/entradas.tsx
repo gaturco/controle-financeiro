@@ -207,7 +207,7 @@ export default function Entradas() {
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span className="font-bold text-primary text-sm">{formatCurrency(income.amount)}</span>
-                  <button onClick={() => openEdit(income)} className="text-muted-foreground hover:text-primary transition-colors p-1 opacity-0 group-hover:opacity-100">
+                  <button onClick={() => openEdit(income)} className="text-muted-foreground hover:text-primary transition-colors p-1">
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button onClick={() => handleDelete(income.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1 opacity-40 group-hover:opacity-100">
