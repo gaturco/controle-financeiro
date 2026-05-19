@@ -81,7 +81,7 @@ export function InstallmentBadge({ current, total }: { current?: number | null; 
   if (!total) return null;
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-amber-500/20 text-amber-300 border-amber-500/30">
-      {current != null ? `${current}/${total}x` : `${total}x`}
+      {`${total}x`}
     </span>
   );
 }

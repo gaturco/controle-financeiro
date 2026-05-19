@@ -27,13 +27,13 @@ export default function Obra() {
             <Card className="border-primary/30 bg-primary/10 hover:bg-primary/15 transition-all duration-150">
               <CardContent className="pt-4 pb-4">
                 <p className="text-xs text-muted-foreground mb-1">Total investido</p>
-                <p className="text-lg font-bold text-primary break-all">{formatCurrency(summary.totalInvested)}</p>
+                <p className="text-lg font-bold text-primary whitespace-nowrap">{formatCurrency(summary.totalInvested)}</p>
               </CardContent>
             </Card>
             <Card className="border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 transition-all duration-150">
               <CardContent className="pt-4 pb-4">
                 <p className="text-xs text-amber-400/80 mb-1">Parcelas / mês</p>
-                <p className="text-lg font-bold text-amber-400 break-all">{formatCurrency(summary.monthlyCommitment)}</p>
+                <p className="text-lg font-bold text-amber-400 whitespace-nowrap">{formatCurrency(summary.monthlyCommitment)}</p>
               </CardContent>
             </Card>
           </div>
