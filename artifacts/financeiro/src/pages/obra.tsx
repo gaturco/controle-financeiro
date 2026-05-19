@@ -57,7 +57,7 @@ export default function Obra() {
                               À vista
                             </span>
                           )}
-                          {item.isInstallment && <InstallmentBadge current={item.currentInstallment} total={item.totalInstallments} />}
+                          {item.isInstallment && <InstallmentBadge total={item.totalInstallments} />}
                           {item.paymentMethod && <PaymentBadge method={item.paymentMethod} />}
                           <span className="text-[10px] text-muted-foreground">desde {monthName(item.startMonth, item.startYear)}</span>
                         </div>
