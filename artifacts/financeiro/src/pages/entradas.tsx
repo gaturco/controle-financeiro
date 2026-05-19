@@ -24,8 +24,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 interface IncomeFormData {
-  person: string; type: string; description: string; amount: string;
-  month: number; year: number; date: string;
+  person: string; type: string; description: string; amount: string; date: string;
 }
 
 export default function Entradas() {
@@ -34,8 +33,7 @@ export default function Entradas() {
   const [open, setOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<IncomeFormData>({
-    person: "gabriel", type: "salario", description: "", amount: "",
-    month, year, date: todayAsIso(),
+    person: "gabriel", type: "salario", description: "", amount: "", date: todayAsIso(),
   });
 
   const params = { month, year };
@@ -49,15 +47,16 @@ export default function Entradas() {
   };
 
   const openSheet = () => {
-    setForm({ person: "gabriel", type: "salario", description: "", amount: "", month, year, date: todayAsIso() });
+    setForm({ person: "gabriel", type: "salario", description: "", amount: "", date: todayAsIso() });
     setOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.amount || !form.description) return;
+    const [y, m] = form.date.split("-").map(Number);
     createMutation.mutate(
-      { data: { person: form.person, type: form.type, description: form.description, amount: Number(form.amount), month: form.month, year: form.year, date: form.date } },
+      { data: { person: form.person, type: form.type, description: form.description, amount: Number(form.amount), month: m, year: y, date: form.date } },
       { onSuccess: () => { invalidate(); setOpen(false); } }
     );
   };
@@ -126,24 +125,6 @@ export default function Entradas() {
               <div className="space-y-1.5">
                 <Label>Data</Label>
                 <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Mês</Label>
-                  <Select value={String(form.month)} onValueChange={(v) => setForm(f => ({ ...f, month: Number(v) }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                        <SelectItem key={m} value={String(m)}>{new Date(2000, m - 1).toLocaleString("pt-BR", { month: "long" })}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Ano</Label>
-                  <Input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))} />
-                </div>
               </div>
 
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>

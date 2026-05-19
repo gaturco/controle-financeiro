@@ -31,8 +31,7 @@ const PAYMENT_METHODS = [
 interface ExpenseFormData {
   description: string; amount: string; category: string; expenseType: string;
   paymentMethod: string; isInstallment: boolean;
-  totalInstallments: string; month: number; year: number; startMonth: number; startYear: number;
-  date: string;
+  totalInstallments: string; date: string;
 }
 
 export default function Gastos() {
@@ -42,8 +41,7 @@ export default function Gastos() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<ExpenseFormData>({
     description: "", amount: "", category: "alimentacao", expenseType: "variavel",
-    paymentMethod: "credito", isInstallment: false, totalInstallments: "",
-    month, year, startMonth: month, startYear: year, date: todayAsIso(),
+    paymentMethod: "credito", isInstallment: false, totalInstallments: "", date: todayAsIso(),
   });
 
   const params = { month, year };
@@ -59,8 +57,7 @@ export default function Gastos() {
   const openSheet = () => {
     setForm({
       description: "", amount: "", category: "alimentacao", expenseType: "variavel",
-      paymentMethod: "credito", isInstallment: false, totalInstallments: "",
-      month, year, startMonth: month, startYear: year, date: todayAsIso(),
+      paymentMethod: "credito", isInstallment: false, totalInstallments: "", date: todayAsIso(),
     });
     setOpen(true);
   };
@@ -72,6 +69,7 @@ export default function Gastos() {
     e.preventDefault();
     if (!form.amount || !form.description) return;
     const isObra = form.category === "obra";
+    const [y, m] = form.date.split("-").map(Number);
     createMutation.mutate(
       {
         data: {
@@ -82,10 +80,10 @@ export default function Gastos() {
           paymentMethod: form.paymentMethod || undefined,
           isInstallment: isObra ? form.isInstallment : false,
           totalInstallments: isObra && form.isInstallment ? Number(form.totalInstallments) : undefined,
-          month: form.month,
-          year: form.year,
-          startMonth: form.startMonth,
-          startYear: form.startYear,
+          month: m,
+          year: y,
+          startMonth: m,
+          startYear: y,
           date: form.date,
         },
       },
@@ -191,24 +189,6 @@ export default function Gastos() {
                   )}
                 </div>
               )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Mês de referência</Label>
-                  <Select value={String(form.month)} onValueChange={v => setForm(f => ({ ...f, month: Number(v), startMonth: Number(v) }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                        <SelectItem key={m} value={String(m)}>{new Date(2000, m - 1).toLocaleString("pt-BR", { month: "long" })}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Ano</Label>
-                  <Input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value), startYear: Number(e.target.value) }))} />
-                </div>
-              </div>
 
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
                 {createMutation.isPending ? "Salvando..." : "Salvar"}
