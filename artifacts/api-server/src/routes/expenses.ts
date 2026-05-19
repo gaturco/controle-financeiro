@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, expensesTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { ListExpensesQueryParams, CreateExpenseBody, UpdateExpenseBody, UpdateExpenseParams, DeleteExpenseParams } from "@workspace/api-zod";
 
 const router = Router();
@@ -20,7 +20,7 @@ router.get("/expenses", async (req, res) => {
   if (category !== undefined) conditions.push(eq(expensesTable.category, category));
   if (type !== undefined) conditions.push(eq(expensesTable.expenseType, type));
 
-  const rows = await db.select().from(expensesTable).where(conditions.length ? and(...conditions) : undefined).orderBy(expensesTable.createdAt);
+  const rows = await db.select().from(expensesTable).where(conditions.length ? and(...conditions) : undefined).orderBy(desc(expensesTable.date), desc(expensesTable.createdAt));
 
   const result = rows.map((r) => ({
     ...r,
