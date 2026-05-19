@@ -217,15 +217,17 @@ export default function Gastos() {
                           <p className="text-sm text-amber-400 font-semibold">= {formatCurrency(monthlyPreview)} / mês</p>
                         )}
                       </div>
-                      <div className="space-y-1.5">
-                        <Label>Qual é a parcela deste mês? <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                        <Input
-                          type="number" min="1"
-                          placeholder={form.totalInstallments ? `1 a ${form.totalInstallments}` : "Ex: 3"}
-                          value={form.currentInstallment}
-                          onChange={e => setForm(f => ({ ...f, currentInstallment: e.target.value }))}
-                        />
-                      </div>
+                      {editingId !== null && (
+                        <div className="space-y-1.5">
+                          <Label>Qual é a parcela deste mês? <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                          <Input
+                            type="number" min="1"
+                            placeholder={form.totalInstallments ? `1 a ${form.totalInstallments}` : "Ex: 3"}
+                            value={form.currentInstallment}
+                            onChange={e => setForm(f => ({ ...f, currentInstallment: e.target.value }))}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

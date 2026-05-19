@@ -31,6 +31,19 @@ router.get("/expenses", async (req, res) => {
   res.json(result);
 });
 
+function shiftMonth(month: number, year: number, offset: number) {
+  const d = new Date(year, month - 1 + offset, 1);
+  return { month: d.getMonth() + 1, year: d.getFullYear() };
+}
+
+function shiftDate(dateStr: string, offset: number): string {
+  const [y, m, day] = dateStr.split("-").map(Number);
+  const d = new Date(y, m - 1 + offset, day);
+  // clamp to last day of month if overflow (e.g. Jan 31 → Feb 28)
+  if (d.getMonth() !== ((m - 1 + offset) % 12 + 12) % 12) d.setDate(0);
+  return d.toISOString().split("T")[0];
+}
+
 router.post("/expenses", async (req, res) => {
   const parsed = CreateExpenseBody.safeParse(req.body);
   if (!parsed.success) {
@@ -46,6 +59,43 @@ router.post("/expenses", async (req, res) => {
     ? amount / totalInstallments
     : amount;
 
+  const startMonth = d.startMonth ?? d.month;
+  const startYear = d.startYear ?? d.year;
+  const startDate = d.date ?? new Date().toISOString().split("T")[0];
+
+  if (isInstallment && totalInstallments && totalInstallments > 1) {
+    const rows = Array.from({ length: totalInstallments }, (_, i) => {
+      const { month, year } = shiftMonth(startMonth, startYear, i);
+      return {
+        person: d.person ?? null,
+        description: d.description,
+        amount: String(amount),
+        monthlyAmount: String(monthlyAmount),
+        category: d.category,
+        expenseType: d.expenseType,
+        paymentMethod: d.paymentMethod ?? null,
+        isInstallment: true,
+        totalInstallments,
+        currentInstallment: i + 1,
+        startMonth,
+        startYear,
+        month,
+        year,
+        date: shiftDate(startDate, i),
+      };
+    });
+
+    const inserted = await db.insert(expensesTable).values(rows).returning();
+    const first = inserted[0];
+    res.status(201).json({
+      ...first,
+      amount: Number(first.amount),
+      monthlyAmount: Number(first.monthlyAmount),
+      createdAt: first.createdAt.toISOString(),
+    });
+    return;
+  }
+
   const [row] = await db.insert(expensesTable).values({
     person: d.person ?? null,
     description: d.description,
@@ -57,10 +107,11 @@ router.post("/expenses", async (req, res) => {
     isInstallment,
     totalInstallments,
     currentInstallment: d.currentInstallment ?? null,
-    startMonth: d.startMonth ?? d.month,
-    startYear: d.startYear ?? d.year,
+    startMonth,
+    startYear,
     month: d.month,
     year: d.year,
+    date: startDate,
   }).returning();
 
   res.status(201).json({
