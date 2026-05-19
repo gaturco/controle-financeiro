@@ -19,6 +19,8 @@ export interface Income {
   amount: number;
   month: number;
   year: number;
+  /** Data exata no formato YYYY-MM-DD */
+  date: string;
   createdAt: string;
 }
 
@@ -29,6 +31,8 @@ export interface IncomeInput {
   amount: number;
   month: number;
   year: number;
+  /** Data exata no formato YYYY-MM-DD */
+  date: string;
 }
 
 export interface IncomeUpdate {
@@ -38,6 +42,7 @@ export interface IncomeUpdate {
   amount?: number;
   month?: number;
   year?: number;
+  date?: string;
 }
 
 export interface Expense {
@@ -70,6 +75,8 @@ export interface Expense {
   startYear?: number;
   month: number;
   year: number;
+  /** Data exata no formato YYYY-MM-DD */
+  date: string;
   createdAt: string;
 }
 
@@ -89,6 +96,8 @@ export interface ExpenseInput {
   startYear?: number;
   month: number;
   year: number;
+  /** Data exata no formato YYYY-MM-DD */
+  date: string;
 }
 
 export interface ExpenseUpdate {
@@ -107,6 +116,7 @@ export interface ExpenseUpdate {
   startYear?: number;
   month?: number;
   year?: number;
+  date?: string;
 }
 
 export interface CategorySummary {

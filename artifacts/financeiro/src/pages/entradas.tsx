@@ -5,7 +5,7 @@ import {
   useCreateIncome, useDeleteIncome,
   getGetMonthlySummaryQueryKey,
 } from "@workspace/api-client-react";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, todayAsIso } from "@/lib/format";
 import { useMonth } from "@/hooks/use-month";
 import { PersonBadge, IncomeBadge } from "@/components/badges";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -24,7 +24,8 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 interface IncomeFormData {
-  person: string; type: string; description: string; amount: string; month: number; year: number;
+  person: string; type: string; description: string; amount: string;
+  month: number; year: number; date: string;
 }
 
 export default function Entradas() {
@@ -32,7 +33,10 @@ export default function Entradas() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [form, setForm] = useState<IncomeFormData>({ person: "gabriel", type: "salario", description: "", amount: "", month, year });
+  const [form, setForm] = useState<IncomeFormData>({
+    person: "gabriel", type: "salario", description: "", amount: "",
+    month, year, date: todayAsIso(),
+  });
 
   const params = { month, year };
   const { data: incomes, isLoading } = useListIncomes(params, { query: { queryKey: getListIncomesQueryKey(params) } });
@@ -45,7 +49,7 @@ export default function Entradas() {
   };
 
   const openSheet = () => {
-    setForm({ person: "gabriel", type: "salario", description: "", amount: "", month, year });
+    setForm({ person: "gabriel", type: "salario", description: "", amount: "", month, year, date: todayAsIso() });
     setOpen(true);
   };
 
@@ -53,7 +57,7 @@ export default function Entradas() {
     e.preventDefault();
     if (!form.amount || !form.description) return;
     createMutation.mutate(
-      { data: { person: form.person, type: form.type, description: form.description, amount: Number(form.amount), month: form.month, year: form.year } },
+      { data: { person: form.person, type: form.type, description: form.description, amount: Number(form.amount), month: form.month, year: form.year, date: form.date } },
       { onSuccess: () => { invalidate(); setOpen(false); } }
     );
   };
@@ -119,6 +123,11 @@ export default function Entradas() {
                 <Input type="number" step="0.01" min="0" placeholder="0,00" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} required />
               </div>
 
+              <div className="space-y-1.5">
+                <Label>Data</Label>
+                <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Mês</Label>
@@ -182,7 +191,10 @@ export default function Entradas() {
             <Card key={income.id} className="group border-border/50 hover:border-border hover:bg-muted/20 transition-all duration-150 cursor-default">
               <CardContent className="py-3 px-4 flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate mb-1.5">{income.description}</p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="font-medium text-sm truncate">{income.description}</p>
+                    <span className="text-[11px] text-muted-foreground shrink-0 ml-2">{formatDate(income.date)}</span>
+                  </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <PersonBadge person={income.person} />
                     <IncomeBadge type={income.type} />

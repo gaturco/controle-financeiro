@@ -22,4 +22,6 @@ export interface ExpenseInput {
   startYear?: number;
   month: number;
   year: number;
+  /** Data exata no formato YYYY-MM-DD */
+  date: string;
 }

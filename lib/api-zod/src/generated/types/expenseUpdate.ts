@@ -22,4 +22,5 @@ export interface ExpenseUpdate {
   startYear?: number;
   month?: number;
   year?: number;
+  date?: string;
 }

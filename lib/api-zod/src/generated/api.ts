@@ -33,6 +33,7 @@ export const ListIncomesResponseItem = zod.object({
   "amount": zod.number(),
   "month": zod.number(),
   "year": zod.number(),
+  "date": zod.string().describe('Data exata no formato YYYY-MM-DD'),
   "createdAt": zod.string()
 })
 export const ListIncomesResponse = zod.array(ListIncomesResponseItem)
@@ -47,7 +48,8 @@ export const CreateIncomeBody = zod.object({
   "description": zod.string(),
   "amount": zod.number(),
   "month": zod.number(),
-  "year": zod.number()
+  "year": zod.number(),
+  "date": zod.string().describe('Data exata no formato YYYY-MM-DD')
 })
 
 
@@ -64,7 +66,8 @@ export const UpdateIncomeBody = zod.object({
   "description": zod.string().optional(),
   "amount": zod.number().optional(),
   "month": zod.number().optional(),
-  "year": zod.number().optional()
+  "year": zod.number().optional(),
+  "date": zod.string().optional()
 })
 
 export const UpdateIncomeResponse = zod.object({
@@ -75,6 +78,7 @@ export const UpdateIncomeResponse = zod.object({
   "amount": zod.number(),
   "month": zod.number(),
   "year": zod.number(),
+  "date": zod.string().describe('Data exata no formato YYYY-MM-DD'),
   "createdAt": zod.string()
 })
 
@@ -114,6 +118,7 @@ export const ListExpensesResponseItem = zod.object({
   "startYear": zod.number().optional(),
   "month": zod.number(),
   "year": zod.number(),
+  "date": zod.string().describe('Data exata no formato YYYY-MM-DD'),
   "createdAt": zod.string()
 })
 export const ListExpensesResponse = zod.array(ListExpensesResponseItem)
@@ -135,7 +140,8 @@ export const CreateExpenseBody = zod.object({
   "startMonth": zod.number().optional(),
   "startYear": zod.number().optional(),
   "month": zod.number(),
-  "year": zod.number()
+  "year": zod.number(),
+  "date": zod.string().describe('Data exata no formato YYYY-MM-DD')
 })
 
 
@@ -159,7 +165,8 @@ export const UpdateExpenseBody = zod.object({
   "startMonth": zod.number().optional(),
   "startYear": zod.number().optional(),
   "month": zod.number().optional(),
-  "year": zod.number().optional()
+  "year": zod.number().optional(),
+  "date": zod.string().optional()
 })
 
 export const UpdateExpenseResponse = zod.object({
@@ -178,6 +185,7 @@ export const UpdateExpenseResponse = zod.object({
   "startYear": zod.number().optional(),
   "month": zod.number(),
   "year": zod.number(),
+  "date": zod.string().describe('Data exata no formato YYYY-MM-DD'),
   "createdAt": zod.string()
 })
 

@@ -5,7 +5,7 @@ import {
   useCreateExpense, useDeleteExpense,
   getGetMonthlySummaryQueryKey,
 } from "@workspace/api-client-react";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, todayAsIso } from "@/lib/format";
 import { useMonth } from "@/hooks/use-month";
 import { CategoryBadge, TypeBadge, PaymentBadge, InstallmentBadge } from "@/components/badges";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -32,6 +32,7 @@ interface ExpenseFormData {
   description: string; amount: string; category: string; expenseType: string;
   paymentMethod: string; isInstallment: boolean;
   totalInstallments: string; month: number; year: number; startMonth: number; startYear: number;
+  date: string;
 }
 
 export default function Gastos() {
@@ -42,7 +43,7 @@ export default function Gastos() {
   const [form, setForm] = useState<ExpenseFormData>({
     description: "", amount: "", category: "alimentacao", expenseType: "variavel",
     paymentMethod: "credito", isInstallment: false, totalInstallments: "",
-    month, year, startMonth: month, startYear: year,
+    month, year, startMonth: month, startYear: year, date: todayAsIso(),
   });
 
   const params = { month, year };
@@ -59,7 +60,7 @@ export default function Gastos() {
     setForm({
       description: "", amount: "", category: "alimentacao", expenseType: "variavel",
       paymentMethod: "credito", isInstallment: false, totalInstallments: "",
-      month, year, startMonth: month, startYear: year,
+      month, year, startMonth: month, startYear: year, date: todayAsIso(),
     });
     setOpen(true);
   };
@@ -85,6 +86,7 @@ export default function Gastos() {
           year: form.year,
           startMonth: form.startMonth,
           startYear: form.startYear,
+          date: form.date,
         },
       },
       { onSuccess: () => { invalidate(); setOpen(false); } }
@@ -125,6 +127,11 @@ export default function Gastos() {
               <div className="space-y-1.5">
                 <Label>Valor total (R$)</Label>
                 <Input type="number" step="0.01" min="0" placeholder="0,00" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} required />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Data</Label>
+                <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
               </div>
 
               <div className="space-y-1.5">
@@ -242,7 +249,10 @@ export default function Gastos() {
             <Card key={expense.id} className="group border-border/50 hover:border-border hover:bg-muted/20 transition-all duration-150 cursor-default">
               <CardContent className="py-3 px-4 flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate mb-2">{expense.description}</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-sm truncate">{expense.description}</p>
+                    <span className="text-[11px] text-muted-foreground shrink-0 ml-2">{formatDate(expense.date)}</span>
+                  </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <CategoryBadge category={expense.category} />
                     <TypeBadge type={expense.expenseType} />

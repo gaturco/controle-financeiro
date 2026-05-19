@@ -1,4 +1,5 @@
-import { pgTable, serial, text, numeric, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, integer, boolean, timestamp, date } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -18,6 +19,7 @@ export const expensesTable = pgTable("expenses", {
   startYear: integer("start_year").notNull(),
   month: integer("month").notNull(),
   year: integer("year").notNull(),
+  date: date("date").default(sql`CURRENT_DATE`).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -13,4 +13,5 @@ export interface IncomeUpdate {
   amount?: number;
   month?: number;
   year?: number;
+  date?: string;
 }

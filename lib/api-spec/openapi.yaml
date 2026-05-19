@@ -254,7 +254,7 @@ components:
 
     Income:
       type: object
-      required: [id, person, type, description, amount, month, year, createdAt]
+      required: [id, person, type, description, amount, month, year, date, createdAt]
       properties:
         id:
           type: integer
@@ -272,12 +272,15 @@ components:
           type: integer
         year:
           type: integer
+        date:
+          type: string
+          description: "Data exata no formato YYYY-MM-DD"
         createdAt:
           type: string
 
     IncomeInput:
       type: object
-      required: [person, type, description, amount, month, year]
+      required: [person, type, description, amount, month, year, date]
       properties:
         person:
           type: string
@@ -291,6 +294,9 @@ components:
           type: integer
         year:
           type: integer
+        date:
+          type: string
+          description: "Data exata no formato YYYY-MM-DD"
 
     IncomeUpdate:
       type: object
@@ -307,10 +313,12 @@ components:
           type: integer
         year:
           type: integer
+        date:
+          type: string
 
     Expense:
       type: object
-      required: [id, description, amount, category, expenseType, month, year, createdAt]
+      required: [id, description, amount, category, expenseType, month, year, date, createdAt]
       properties:
         id:
           type: integer
@@ -348,12 +356,15 @@ components:
           type: integer
         year:
           type: integer
+        date:
+          type: string
+          description: "Data exata no formato YYYY-MM-DD"
         createdAt:
           type: string
 
     ExpenseInput:
       type: object
-      required: [description, amount, category, expenseType, month, year]
+      required: [description, amount, category, expenseType, month, year, date]
       properties:
         person:
           type: string
@@ -381,6 +392,9 @@ components:
           type: integer
         year:
           type: integer
+        date:
+          type: string
+          description: "Data exata no formato YYYY-MM-DD"
 
     ExpenseUpdate:
       type: object
@@ -411,6 +425,8 @@ components:
           type: integer
         year:
           type: integer
+        date:
+          type: string
 
     CategorySummary:
       type: object

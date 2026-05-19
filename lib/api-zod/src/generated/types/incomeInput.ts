@@ -13,4 +13,6 @@ export interface IncomeInput {
   amount: number;
   month: number;
   year: number;
+  /** Data exata no formato YYYY-MM-DD */
+  date: string;
 }
