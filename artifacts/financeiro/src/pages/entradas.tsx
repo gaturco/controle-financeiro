@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListIncomes, getListIncomesQueryKey,
-  useCreateIncome, useDeleteIncome,
+  useCreateIncome, useDeleteIncome, useUpdateIncome,
   getGetMonthlySummaryQueryKey,
 } from "@workspace/api-client-react";
 import { formatCurrency, formatDate, todayAsIso } from "@/lib/format";
@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { DateInput } from "@/components/date-input";
 
 const INCOME_TYPES = ["salario", "bonus", "plr", "decimo_terceiro", "outro"];
@@ -32,6 +32,7 @@ export default function Entradas() {
   const { month, year } = useMonth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<IncomeFormData>({
     person: "gabriel", type: "salario", description: "", amount: "", date: todayAsIso(),
@@ -40,6 +41,7 @@ export default function Entradas() {
   const params = { month, year };
   const { data: incomes, isLoading } = useListIncomes(params, { query: { queryKey: getListIncomesQueryKey(params) } });
   const createMutation = useCreateIncome();
+  const updateMutation = useUpdateIncome();
   const deleteMutation = useDeleteIncome();
 
   const invalidate = () => {
@@ -47,8 +49,21 @@ export default function Entradas() {
     queryClient.invalidateQueries({ queryKey: getGetMonthlySummaryQueryKey(params) });
   };
 
-  const openSheet = () => {
+  const openNew = () => {
+    setEditingId(null);
     setForm({ person: "gabriel", type: "salario", description: "", amount: "", date: todayAsIso() });
+    setOpen(true);
+  };
+
+  const openEdit = (income: NonNullable<typeof incomes>[number]) => {
+    setEditingId(income.id);
+    setForm({
+      person: income.person,
+      type: income.type,
+      description: income.description,
+      amount: String(income.amount),
+      date: income.date,
+    });
     setOpen(true);
   };
 
@@ -56,10 +71,18 @@ export default function Entradas() {
     e.preventDefault();
     if (!form.amount || !form.description) return;
     const [y, m] = form.date.split("-").map(Number);
-    createMutation.mutate(
-      { data: { person: form.person, type: form.type, description: form.description, amount: Number(form.amount), month: m, year: y, date: form.date } },
-      { onSuccess: () => { invalidate(); setOpen(false); } }
-    );
+
+    if (editingId !== null) {
+      updateMutation.mutate(
+        { id: editingId, data: { person: form.person, type: form.type, description: form.description, amount: Number(form.amount), month: m, year: y, date: form.date } },
+        { onSuccess: () => { invalidate(); setOpen(false); } }
+      );
+    } else {
+      createMutation.mutate(
+        { data: { person: form.person, type: form.type, description: form.description, amount: Number(form.amount), month: m, year: y, date: form.date } },
+        { onSuccess: () => { invalidate(); setOpen(false); } }
+      );
+    }
   };
 
   const handleDelete = (id: number) => setDeleteId(id);
@@ -72,6 +95,8 @@ export default function Entradas() {
     });
   };
 
+  const isPending = editingId !== null ? updateMutation.isPending : createMutation.isPending;
+
   const total = incomes?.reduce((s, i) => s + i.amount, 0) ?? 0;
   const gabrielTotal = incomes?.filter(i => i.person === "gabriel").reduce((s, i) => s + i.amount, 0) ?? 0;
   const fernandaTotal = incomes?.filter(i => i.person === "fernanda").reduce((s, i) => s + i.amount, 0) ?? 0;
@@ -82,13 +107,13 @@ export default function Entradas() {
         <h1 className="text-xl font-bold tracking-tight">Entradas</h1>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button size="sm" onClick={openSheet}>
+            <Button size="sm" onClick={openNew}>
               <Plus className="h-4 w-4 mr-1" /> Adicionar
             </Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] overflow-y-auto">
             <SheetHeader className="mb-4">
-              <SheetTitle>Nova Entrada</SheetTitle>
+              <SheetTitle>{editingId !== null ? "Editar Entrada" : "Nova Entrada"}</SheetTitle>
             </SheetHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
@@ -128,8 +153,8 @@ export default function Entradas() {
                 <DateInput value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} required />
               </div>
 
-              <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Salvando..." : "Salvar"}
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? "Salvando..." : "Salvar"}
               </Button>
             </form>
           </SheetContent>
@@ -182,8 +207,11 @@ export default function Entradas() {
                     <IncomeBadge type={income.type} />
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span className="font-bold text-primary text-sm">{formatCurrency(income.amount)}</span>
+                  <button onClick={() => openEdit(income)} className="text-muted-foreground hover:text-primary transition-colors p-1 opacity-0 group-hover:opacity-100">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
                   <button onClick={() => handleDelete(income.id)} className="text-muted-foreground hover:text-destructive transition-colors p-1 opacity-40 group-hover:opacity-100">
                     <Trash2 className="h-4 w-4" />
                   </button>

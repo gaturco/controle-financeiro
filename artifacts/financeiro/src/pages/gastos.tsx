@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListExpenses, getListExpensesQueryKey,
-  useCreateExpense, useDeleteExpense,
+  useCreateExpense, useDeleteExpense, useUpdateExpense,
   getGetMonthlySummaryQueryKey,
 } from "@workspace/api-client-react";
 import { formatCurrency, formatDate, todayAsIso } from "@/lib/format";
@@ -16,7 +16,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { DateInput } from "@/components/date-input";
 
 const CATEGORIES = ["obra", "alimentacao", "transporte", "saude", "educacao", "lazer", "cartao_credito", "outros"];
@@ -39,6 +39,7 @@ export default function Gastos() {
   const { month, year } = useMonth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [form, setForm] = useState<ExpenseFormData>({
     description: "", amount: "", category: "alimentacao", expenseType: "variavel",
@@ -48,6 +49,7 @@ export default function Gastos() {
   const params = { month, year };
   const { data: expenses, isLoading } = useListExpenses(params, { query: { queryKey: getListExpensesQueryKey(params) } });
   const createMutation = useCreateExpense();
+  const updateMutation = useUpdateExpense();
   const deleteMutation = useDeleteExpense();
 
   const invalidate = () => {
@@ -55,10 +57,26 @@ export default function Gastos() {
     queryClient.invalidateQueries({ queryKey: getGetMonthlySummaryQueryKey(params) });
   };
 
-  const openSheet = () => {
+  const openNew = () => {
+    setEditingId(null);
     setForm({
       description: "", amount: "", category: "alimentacao", expenseType: "variavel",
       paymentMethod: "credito", isInstallment: false, totalInstallments: "", date: todayAsIso(),
+    });
+    setOpen(true);
+  };
+
+  const openEdit = (expense: NonNullable<typeof expenses>[number]) => {
+    setEditingId(expense.id);
+    setForm({
+      description: expense.description,
+      amount: String(expense.amount),
+      category: expense.category,
+      expenseType: expense.expenseType,
+      paymentMethod: expense.paymentMethod ?? "credito",
+      isInstallment: expense.isInstallment ?? false,
+      totalInstallments: expense.totalInstallments ? String(expense.totalInstallments) : "",
+      date: expense.date,
     });
     setOpen(true);
   };
@@ -71,25 +89,33 @@ export default function Gastos() {
     if (!form.amount || !form.description) return;
     const isObra = form.category === "obra";
     const [y, m] = form.date.split("-").map(Number);
-    createMutation.mutate(
-      {
-        data: {
-          description: form.description,
-          amount: Number(form.amount),
-          category: form.category,
-          expenseType: form.expenseType,
-          paymentMethod: form.paymentMethod || undefined,
-          isInstallment: isObra ? form.isInstallment : false,
-          totalInstallments: isObra && form.isInstallment ? Number(form.totalInstallments) : undefined,
-          month: m,
-          year: y,
-          startMonth: m,
-          startYear: y,
-          date: form.date,
-        },
-      },
-      { onSuccess: () => { invalidate(); setOpen(false); } }
-    );
+
+    const data = {
+      description: form.description,
+      amount: Number(form.amount),
+      category: form.category,
+      expenseType: form.expenseType,
+      paymentMethod: form.paymentMethod || undefined,
+      isInstallment: isObra ? form.isInstallment : false,
+      totalInstallments: isObra && form.isInstallment ? Number(form.totalInstallments) : undefined,
+      month: m,
+      year: y,
+      startMonth: m,
+      startYear: y,
+      date: form.date,
+    };
+
+    if (editingId !== null) {
+      updateMutation.mutate(
+        { id: editingId, data },
+        { onSuccess: () => { invalidate(); setOpen(false); } }
+      );
+    } else {
+      createMutation.mutate(
+        { data },
+        { onSuccess: () => { invalidate(); setOpen(false); } }
+      );
+    }
   };
 
   const handleDelete = (id: number) => setDeleteId(id);
@@ -102,6 +128,7 @@ export default function Gastos() {
     });
   };
 
+  const isPending = editingId !== null ? updateMutation.isPending : createMutation.isPending;
   const total = expenses?.reduce((s, e) => s + (e.monthlyAmount ?? e.amount), 0) ?? 0;
   const fixedTotal = expenses?.filter(e => e.expenseType === "fixo").reduce((s, e) => s + (e.monthlyAmount ?? e.amount), 0) ?? 0;
   const varTotal = expenses?.filter(e => e.expenseType === "variavel").reduce((s, e) => s + (e.monthlyAmount ?? e.amount), 0) ?? 0;
@@ -113,10 +140,10 @@ export default function Gastos() {
         <h1 className="text-xl font-bold tracking-tight">Gastos</h1>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button size="sm" onClick={openSheet}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
+            <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto">
-            <SheetHeader className="mb-4"><SheetTitle>Novo Gasto</SheetTitle></SheetHeader>
+            <SheetHeader className="mb-4"><SheetTitle>{editingId !== null ? "Editar Gasto" : "Novo Gasto"}</SheetTitle></SheetHeader>
             <form onSubmit={handleSubmit} className="space-y-4 pb-4">
               <div className="space-y-1.5">
                 <Label>Descrição</Label>
@@ -191,8 +218,8 @@ export default function Gastos() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Salvando..." : "Salvar"}
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? "Salvando..." : "Salvar"}
               </Button>
             </form>
           </SheetContent>
@@ -248,13 +275,16 @@ export default function Gastos() {
                     }
                   </div>
                 </div>
-                <div className="flex items-start gap-3 shrink-0 pt-0.5">
-                  <div className="text-right">
+                <div className="flex items-start gap-1.5 shrink-0 pt-0.5">
+                  <div className="text-right mr-1">
                     <p className="font-bold text-sm text-destructive">{formatCurrency(expense.monthlyAmount ?? expense.amount)}</p>
                     {expense.isInstallment && (
                       <p className="text-[10px] text-muted-foreground">/mês</p>
                     )}
                   </div>
+                  <button onClick={() => openEdit(expense)} className="text-muted-foreground hover:text-primary transition-colors p-0.5 mt-0.5 opacity-0 group-hover:opacity-100">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
                   <button onClick={() => handleDelete(expense.id)} className="text-muted-foreground hover:text-destructive transition-colors p-0.5 mt-0.5 opacity-40 group-hover:opacity-100">
                     <Trash2 className="h-4 w-4" />
                   </button>
