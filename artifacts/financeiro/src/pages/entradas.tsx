@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
+import { DateInput } from "@/components/date-input";
 
 const INCOME_TYPES = ["salario", "bonus", "plr", "decimo_terceiro", "outro"];
 const TYPE_LABELS: Record<string, string> = {
@@ -124,7 +125,7 @@ export default function Entradas() {
 
               <div className="space-y-1.5">
                 <Label>Data</Label>
-                <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
+                <DateInput value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} required />
               </div>
 
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>

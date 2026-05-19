@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
+import { DateInput } from "@/components/date-input";
 
 const CATEGORIES = ["obra", "alimentacao", "transporte", "saude", "educacao", "lazer", "cartao_credito", "outros"];
 const CATEGORY_LABELS: Record<string, string> = {
@@ -129,7 +130,7 @@ export default function Gastos() {
 
               <div className="space-y-1.5">
                 <Label>Data</Label>
-                <Input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} required />
+                <DateInput value={form.date} onChange={v => setForm(f => ({ ...f, date: v }))} required />
               </div>
 
               <div className="space-y-1.5">
