@@ -275,10 +275,10 @@ export default function Gastos() {
                 </div>
                 <div className="flex items-start gap-1.5 shrink-0 pt-0.5">
                   <div className="text-right mr-1">
-                    <p className="font-bold text-sm text-destructive">{formatCurrency(expense.monthlyAmount ?? expense.amount)}</p>
-                    {expense.isInstallment && (
-                      <p className="text-[10px] text-muted-foreground">/mês</p>
-                    )}
+                    <p className="font-bold text-sm text-destructive whitespace-nowrap">
+                      {formatCurrency(expense.monthlyAmount ?? expense.amount)}
+                      {expense.isInstallment && <span className="text-[10px] font-normal text-muted-foreground ml-0.5">/mês</span>}
+                    </p>
                   </div>
                   <button onClick={() => openEdit(expense)} className="text-muted-foreground hover:text-primary transition-colors p-0.5 mt-0.5">
                     <Pencil className="h-3.5 w-3.5" />
