@@ -1,3 +1,7 @@
+import { useRef } from "react";
+import { Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface DateInputProps {
@@ -8,20 +12,35 @@ interface DateInputProps {
 }
 
 export function DateInput({ value, onChange, required, className }: DateInputProps) {
+  const nativeRef = useRef<HTMLInputElement>(null);
+  const displayValue = value ? value.split("-").reverse().join("/") : "";
+
   return (
-    <input
-      type="date"
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      required={required}
-      className={cn(
-        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-        "text-foreground ring-offset-background",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        "[color-scheme:dark]",
-        className
-      )}
-    />
+    <div className={cn("flex gap-2", className)}>
+      <Input
+        readOnly
+        value={displayValue}
+        placeholder="dd/mm/aaaa"
+        className="flex-1 cursor-pointer"
+        onClick={() => nativeRef.current?.click()}
+      />
+      <Button
+        type="button"
+        size="icon"
+        className="shrink-0 bg-primary hover:bg-primary/80 text-primary-foreground"
+        onClick={() => nativeRef.current?.click()}
+      >
+        <Calendar className="h-4 w-4" />
+      </Button>
+      <input
+        ref={nativeRef}
+        type="date"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        required={required}
+        className="sr-only"
+        tabIndex={-1}
+      />
+    </div>
   );
 }
