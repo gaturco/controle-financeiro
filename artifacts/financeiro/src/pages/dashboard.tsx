@@ -54,7 +54,7 @@ export default function Dashboard() {
           <Card className={`transition-all duration-150 ${summary.balance >= 0 ? "border-primary/40 bg-primary/10 hover:bg-primary/15" : "border-destructive/40 bg-destructive/10 hover:bg-destructive/15"}`}>
             <CardContent className="pt-5 pb-5">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Saldo do mês</p>
-              <p className={`text-4xl font-bold ${summary.balance >= 0 ? "text-primary" : "text-destructive"}`}>
+              <p className={`text-3xl font-bold break-all ${summary.balance >= 0 ? "text-primary" : "text-destructive"}`}>
                 {formatCurrency(summary.balance)}
               </p>
             </CardContent>
@@ -65,13 +65,13 @@ export default function Dashboard() {
             <Card className="border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all duration-150">
               <CardContent className="pt-4 pb-4">
                 <p className="text-xs text-muted-foreground mb-1">Receitas</p>
-                <p className="text-2xl font-bold text-primary">{formatCurrency(summary.totalIncome)}</p>
+                <p className="text-lg font-bold text-primary break-all">{formatCurrency(summary.totalIncome)}</p>
               </CardContent>
             </Card>
             <Card className="border-destructive/20 bg-destructive/5 hover:bg-destructive/10 transition-all duration-150">
               <CardContent className="pt-4 pb-4">
                 <p className="text-xs text-muted-foreground mb-1">Despesas</p>
-                <p className="text-2xl font-bold text-destructive">{formatCurrency(summary.totalExpenses)}</p>
+                <p className="text-lg font-bold text-destructive break-all">{formatCurrency(summary.totalExpenses)}</p>
                 <p className="text-[10px] text-muted-foreground mt-1">Fixas {formatCurrency(summary.fixedTotal)}</p>
               </CardContent>
             </Card>
@@ -82,7 +82,7 @@ export default function Dashboard() {
             <Card className="border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 transition-all duration-150">
               <CardContent className="pt-4 pb-4">
                 <p className="text-xs text-amber-400/80 mb-1 font-medium">Obra este mês</p>
-                <p className="text-2xl font-bold text-amber-400">{formatCurrency(summary.obraTotal)}</p>
+                <p className="text-lg font-bold text-amber-400 break-all">{formatCurrency(summary.obraTotal)}</p>
               </CardContent>
             </Card>
           )}

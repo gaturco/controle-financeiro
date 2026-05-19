@@ -175,7 +175,7 @@ export default function Entradas() {
                 <div className="flex items-center gap-2 mb-1">
                   <PersonBadge person="gabriel" />
                 </div>
-                <p className="text-lg font-bold text-blue-300">{formatCurrency(gabrielTotal)}</p>
+                <p className="text-base font-bold text-blue-300 break-all">{formatCurrency(gabrielTotal)}</p>
               </CardContent>
             </Card>
             <Card className="border-purple-500/20 bg-purple-500/5 hover:bg-purple-500/10 transition-all duration-150">
@@ -183,7 +183,7 @@ export default function Entradas() {
                 <div className="flex items-center gap-2 mb-1">
                   <PersonBadge person="fernanda" />
                 </div>
-                <p className="text-lg font-bold text-purple-300">{formatCurrency(fernandaTotal)}</p>
+                <p className="text-base font-bold text-purple-300 break-all">{formatCurrency(fernandaTotal)}</p>
               </CardContent>
             </Card>
           </div>
