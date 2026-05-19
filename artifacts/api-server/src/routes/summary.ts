@@ -57,12 +57,27 @@ router.get("/summary", async (req, res) => {
 router.get("/obra-summary", async (req, res) => {
   const rows = await db.select().from(expensesTable).where(eq(expensesTable.category, "obra"));
 
-  const totalInvested = rows.reduce((s, r) => s + Number(r.amount), 0);
-  const monthlyCommitment = rows
+  // Deduplicate installment purchases: keep only one row per purchase (currentInstallment = 1)
+  const seen = new Set<string>();
+  const deduped: typeof rows = [];
+  for (const r of rows) {
+    if (r.isInstallment) {
+      const key = `${r.startMonth}-${r.startYear}-${r.description}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(r);
+      }
+    } else {
+      deduped.push(r);
+    }
+  }
+
+  const totalInvested = deduped.reduce((s, r) => s + Number(r.amount), 0);
+  const monthlyCommitment = deduped
     .filter(r => r.isInstallment)
     .reduce((s, r) => s + Number(r.monthlyAmount), 0);
 
-  const items = rows.map(r => ({
+  const items = deduped.map(r => ({
     id: r.id,
     description: r.description,
     amount: Number(r.amount),

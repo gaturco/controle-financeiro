@@ -246,19 +246,19 @@ export default function Gastos() {
           <Card className="border-destructive/30 bg-destructive/10 hover:bg-destructive/15 transition-all duration-150">
             <CardContent className="py-3 px-3">
               <p className="text-[10px] text-muted-foreground mb-0.5">Total</p>
-              <p className="text-sm font-bold text-destructive break-all">{formatCurrency(total)}</p>
+              <p className="text-xs font-bold text-destructive whitespace-nowrap">{formatCurrency(total)}</p>
             </CardContent>
           </Card>
           <Card className="border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all duration-150">
             <CardContent className="py-3 px-3">
               <p className="text-[10px] text-muted-foreground mb-0.5">Fixos</p>
-              <p className="text-sm font-bold text-primary break-all">{formatCurrency(fixedTotal)}</p>
+              <p className="text-xs font-bold text-primary whitespace-nowrap">{formatCurrency(fixedTotal)}</p>
             </CardContent>
           </Card>
           <Card className="hover:bg-muted/20 transition-all duration-150">
             <CardContent className="py-3 px-3">
               <p className="text-[10px] text-muted-foreground mb-0.5">Variáveis</p>
-              <p className="text-sm font-bold break-all">{formatCurrency(varTotal)}</p>
+              <p className="text-xs font-bold whitespace-nowrap">{formatCurrency(varTotal)}</p>
             </CardContent>
           </Card>
         </div>
